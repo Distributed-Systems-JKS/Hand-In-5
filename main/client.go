@@ -6,6 +6,7 @@ import(
 	"strconv"
 	"log"
 	"context"
+	"math/rand/v2"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -45,7 +46,8 @@ func makeClient(port string) {
 func bid(clients[2] proto.AuctionClient){
 	
 	for i := range clients{
-		reply, err := clients[i].Bid(context.Background(), &proto.Bid{Id: 2, Amount: 30}, grpc.WaitForReady(true))
+		
+		reply, err := clients[i].Bid(context.Background(), &proto.Bid{Id: 2, Amount: int64(rand.IntN(300))}, grpc.WaitForReady(true))
 		fmt.Println(reply.Outcome)
 
 		if(err != nil){
