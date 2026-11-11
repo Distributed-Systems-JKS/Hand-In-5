@@ -37,7 +37,7 @@ func makeClient(nodeId int64) {
 }
 
 func sendBid(){
-	bid := &proto.Bid{Id: id, Amount: int64(rand.IntN(300))}
+	bid := &proto.Bid{Id: id, Amount: int64(rand.IntN(300))} // Sends a random bid from 0-300 (for now)
 
 	// Start out by trying known leaderNode first
 	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))

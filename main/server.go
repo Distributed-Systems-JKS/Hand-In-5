@@ -35,6 +35,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 		// Opdater backup servere før den sender til klienten
 		return &proto.Ack{Outcome: "Succes"}, nil
 	}
+	// Update allBidders
 
 	return &proto.Ack{Outcome: "Unsuccesfull"}, nil
 }
