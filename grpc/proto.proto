@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "./proto";
+
+service Auction{
+    rpc Bid(bid) returns (ack){};
+    rpc Result(empty) returns (highestBid){};
+}
+
+message bid{
+    int64 Id = 1;
+    int64 Amount = 2;
+}
+
+message ack{
+    string Outcome = 1;
+}
+
+message highestBid{
+    int64 Id = 1;
+    int64 Amount = 2;
+    string Status = 3; //maybe not neccesary, but just status if the auction is over or not
+}
+
+message empty{}
