@@ -13,61 +13,76 @@ import(
 )
 
 
-func makeClient(port string) {
+	var id int64
+	var nodes [3]string // Addresses of other nodes
+	var leaderNodeId int // Last known leader
+	var clients[3] proto.AuctionClient
 
-	address := fmt.Sprintf("localhost:%s", port)
-	
-	//conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//client := proto.NewClientServerClient(conn)
+func makeClient(nodeId int64) {
+	id = nodeId
+	leaderNodeId = 2
 
-	//making the other client stubs, so we can communicate to the other servers
-	var clients[2] proto.AuctionClient
-	clientPosition := 0 //making sure that we only add two clients to the list in the for-loop
 	for i := 0; i < 3; i++ {
-		var basePort string = "localhost:505" + strconv.Itoa(i);
-		if(basePort != address){
-			conn, err := grpc.NewClient(basePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			//log.Printf("Connecting to gRPC server on port 505" + strconv.Itoa(i))
-			if err != nil {
-				log.Fatalf("Did not connect: %v", err)
-			}
-			clients[clientPosition] = proto.NewAuctionClient(conn)
-			clientPosition++
+		nodes[i] = "localhost:505" + strconv.Itoa(i);
+		conn, err := grpc.NewClient(nodes[i], grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatalf("Did not connect: %v", err)
 		}
-		
+		clients[i] = proto.NewAuctionClient(conn)
 	}
 
-
-	bid(clients)
-	result(clients)
+	sendBid()
+	result()
 	
 }
 
-func bid(clients[2] proto.AuctionClient){
-	
-	for i := range clients{
-		
-		reply, err := clients[i].Bid(context.Background(), &proto.Bid{Id: 2, Amount: int64(rand.IntN(300))}, grpc.WaitForReady(true))
+func sendBid(){
+	bid := &proto.Bid{Id: id, Amount: int64(rand.IntN(300))}
+
+	// Start out by trying known leaderNode first
+	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))
+	if err == nil {
 		fmt.Println(reply.Outcome)
-
-		if(err != nil){
-			log.Println(err)
-			return;
-		}
+		return
 	}
+
+	log.Printf("not leader, leader is: %v", err)
 	
-	
+	// Tries other nodes instead
+	for i := range clients{
+		if i == leaderNodeId {
+			continue // We already tried this node
+		}
+		reply, err := clients[i].Bid(context.Background(), bid, grpc.WaitForReady(true))
+		if(err != nil){
+			log.Printf("not leader, leader is: %v", err)
+			continue; // Tries next leader instead
+		} 
+		leaderNodeId = i // Set new leader
+		fmt.Println(reply.Outcome)
+	}
 }
 
-func result(clients[2] proto.AuctionClient){
-	
-	for i := range clients{
-		reply, err := clients[i].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
+func result(){
+	reply, err := clients[leaderNodeId].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
+	if err == nil {
 		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
+		return
+	}
 
+	log.Printf("not leader, leader is: %v", err)
+
+	for i := range clients{
+		if i == leaderNodeId {
+			continue // We already tried this node
+		}
+
+		reply, err := clients[i].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
 		if(err != nil){
 			log.Println(err)
-			return;
+			continue;
 		}
+		leaderNodeId = i // Set new leader
+		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
 	}
 }

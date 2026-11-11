@@ -84,7 +84,7 @@ func main(){
 
 	go makeServer(*portFlag, int64(idInt))
 
-	go makeClient(*portFlag)
+	go makeClient(int64(idInt))
 
 	select{} //so our main continues to run even if the goroutine finishes temporarily
 
