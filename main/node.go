@@ -1,7 +1,6 @@
 package main;
 
 import(
-	"flag"
 	"strconv"
 	"log"
 	"encoding/csv"
@@ -68,23 +67,34 @@ func main(){
 
 	makeCSVfile()
 	
-	portFlag := flag.String("port", "5050", "The port for this server to listen on")
+	/* portFlag := flag.String("port", "5050", "The port for this server to listen on")
 	flag.Parse()
 	port := *portFlag
-	
-
-
 	
 	idInt, err := strconv.ParseInt(port[len(port)-1:], 10, 64) //get the last digit of the port and set as id
 	if(err != nil){
 		log.Printf("Could not convert id %v", err)
+	}*/
+
+
+	// Hardcoded to make 3 servers at the moment
+	basePort := "505"
+	amount := 3
+	for i := 0; i < amount; i++ {
+		
+		/*server := &AuctionServer{
+		id: 		int64(i),
+		isLeader: 	i == amount,	// Midlertidigt hardcoded til at være højeste Id ud af portene
+		leader:		basePort + strconv.Itoa(amount),	// Midlertidigt hardcoded
+		peers: 		[]string{"localhost:5050", "localhost:5051", "localhost:5052"}, // Midlertidigt hardcoded til at være på de 3 porte 
+		highestBid: 0,
+		allBidders: make(map[string]bool),	// Skal initialiseres for at kunne bruges senere
+		endTime: 	time.Now().Add(100 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
+	}*/
+
+		go makeServer(basePort + strconv.Itoa(i), int64(i))
+		go makeClient(int64(i))
 	}
-
-	log.Println((idInt))
-
-	go makeServer(*portFlag, int64(idInt))
-
-	go makeClient(int64(idInt))
 
 	select{} //so our main continues to run even if the goroutine finishes temporarily
 
