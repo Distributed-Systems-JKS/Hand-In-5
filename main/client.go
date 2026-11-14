@@ -7,6 +7,8 @@ import(
 	"log"
 	"context"
 	"math/rand/v2"
+	"encoding/csv"
+	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,10 +19,12 @@ import(
 	var nodes [3]string // Addresses of other nodes
 	var leaderNodeId int // Last known leader
 	var clients[3] proto.AuctionClient
+	var database *os.File
 
-func makeClient(nodeId int64) {
+func makeClient(nodeId int64, databaseImport *os.File) {
 	id = nodeId
 	leaderNodeId = 2
+	database = databaseImport
 
 	for i := 0; i < 3; i++ {
 		nodes[i] = "localhost:505" + strconv.Itoa(i);
@@ -89,3 +93,38 @@ func result(){
 		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
 	}
 }
+
+func replicateMessage(amount int64){
+	reply, err := clients[leaderNodeId].Replicate(context.Background(), &proto.Replicate{Id: id, Amount: amount}, grpc.WaitForReady(true))
+	if err == nil {
+		w := csv.NewWriter(database)
+		writeInDatabase(*w,reply.GetId(), reply.GetAmount())
+		fmt.Println("Replicate: " + reply.Outcome + " in file: " + database.Name())
+		return
+	}
+	
+	log.Printf("not leader, leader is: %v", err)
+
+	for i := range clients{
+		if i == leaderNodeId {
+			continue // We already tried this node
+		}
+
+		reply, err := clients[i].Replicate(context.Background(), &proto.Replicate{}, grpc.WaitForReady(true))
+		if(err != nil){
+			log.Println(err)
+			continue;
+		}
+		
+		leaderNodeId = i // Set new leader
+
+		w := csv.NewWriter(database)
+		writeInDatabase(*w,reply.GetId(), reply.GetAmount())
+
+		fmt.Println("Replicate: " + reply.Outcome)
+	}
+
+
+	
+}
+

@@ -10,6 +10,9 @@ import(
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
+	"strconv"
+	"encoding/csv"
 )
 
 type AuctionServer struct {
@@ -22,6 +25,7 @@ type AuctionServer struct {
 	highestBidder 	int64
 	allBidders 		map[string]bool
 	endTime 		time.Time
+	database		*os.File
 }
 
 func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, error) {
@@ -32,20 +36,45 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	if (bid.Amount > s.highestBid) {
 		s.highestBid = bid.GetAmount()
 		s.highestBidder = bid.GetId()
+
+		w := csv.NewWriter(s.database);
+		writeInDatabase(*w,bid.GetId(),bid.GetAmount())
+
 		// Opdater backup servere før den sender til klienten
+
+		replicateMessage(bid.GetAmount())
+
 		return &proto.Ack{Outcome: "Succes"}, nil
 	}
 	// Update allBidders
 
 	return &proto.Ack{Outcome: "Unsuccesfull"}, nil
 }
+
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
 	if !s.isLeader { // All non-leaders reject client requests. (For now): Uses a gRPC status error and includes the leader's address...
 		return nil, status.Errorf(codes.FailedPrecondition, "not leader; leader=%s", s.leader)
 	} 
 	return &proto.HighestBid{Id: s.highestBidder,  Amount: s.highestBid, Status: "Auction over"}, nil
 }
-func makeServer(port string, NodeId int64) {
+
+func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicate)(*proto.ReplicateAck, error){
+
+	return &proto.ReplicateAck{Id: replicate.GetId(), Amount: replicate.GetAmount(), Outcome: "Success"}, nil
+}
+
+
+func writeInDatabase(w csv.Writer, id int64, amount int64){
+	
+	bid := [][]string{{strconv.Itoa(int(id)), strconv.Itoa(int(amount))}}
+
+	w.Write(bid[0])
+	
+	//Ensures that the written data is in the csv file
+	w.Flush()
+}
+
+func makeServer(port string, NodeId int64, database *os.File) {
 	
 	// Listen on TCP port
 	address := fmt.Sprintf(":%s", port)
@@ -62,6 +91,7 @@ func makeServer(port string, NodeId int64) {
 		highestBid: 0,
 		allBidders: make(map[string]bool),	// Skal initialiseres for at kunne bruges senere
 		endTime: 	time.Now().Add(100 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
+		database:   database,
 	}
 	
 

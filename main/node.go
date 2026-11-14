@@ -65,7 +65,7 @@ func makeCSVfile(){
 
 func main(){
 
-	makeCSVfile()
+	//makeCSVfile()
 	
 	/* portFlag := flag.String("port", "5050", "The port for this server to listen on")
 	flag.Parse()
@@ -91,11 +91,37 @@ func main(){
 		allBidders: make(map[string]bool),	// Skal initialiseres for at kunne bruges senere
 		endTime: 	time.Now().Add(100 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
 	}*/
-
-		go makeServer(basePort + strconv.Itoa(i), int64(i))
-		go makeClient(int64(i))
+		database := makeDatabase(int64(i))
+		go makeServer(basePort + strconv.Itoa(i), int64(i), database)
+		go makeClient(int64(i), database)
 	}
 
 	select{} //so our main continues to run even if the goroutine finishes temporarily
 
 }
+
+func makeDatabase(id int64) *os.File{
+	//Create a csv file
+	f, err := os.Create("Data" + strconv.Itoa(int(id)) + ".csv");
+    if err != nil {
+        log.Fatal(err)
+    }
+    //defer f.Close()
+
+	//making a csv writer
+   	w := csv.NewWriter(f)
+
+	//Make a header in csv
+    header := [][]string{
+        {"Id", "amount"},
+    }
+
+	//write the header in csv
+	w.Write(header[0])
+
+	//Ensures that the written data is in the csv file
+	w.Flush()
+
+	return f;
+}
+

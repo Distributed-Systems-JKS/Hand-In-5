@@ -7,6 +7,7 @@ option go_package = "./proto";
 service Auction{
     rpc Bid(bid) returns (ack){};
     rpc Result(empty) returns (highestBid){};
+    rpc Replicate(replicate) returns (replicateAck){};
 }
 
 message bid{
@@ -22,6 +23,17 @@ message highestBid{
     int64 Id = 1;
     int64 Amount = 2;
     string Status = 3; //maybe not neccesary, but just status if the auction is over or not
+}
+
+message replicate{
+    int64 Id = 1;
+    int64 Amount = 2;
+}
+
+message replicateAck{
+    int64 Id = 1;
+    int64 Amount = 2;
+    string Outcome = 3;
 }
 
 message empty{}
