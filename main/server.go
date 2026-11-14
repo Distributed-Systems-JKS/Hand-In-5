@@ -32,7 +32,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	if !s.isLeader { // All non-leaders reject client requests. (For now): Uses a gRPC status error and includes the leader's address...
 		return nil, status.Errorf(codes.FailedPrecondition, "not leader; leader=%s", s.leader)
 	} 
-
+	fmt.Println("Client " + strconv.Itoa(int(bid.GetId())) + " send a bid");
 	if (bid.Amount > s.highestBid) {
 		s.highestBid = bid.GetAmount()
 		s.highestBidder = bid.GetId()
