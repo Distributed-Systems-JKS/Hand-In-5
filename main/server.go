@@ -58,7 +58,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 
 		//replicateMessage(bid.GetAmount()) //remove ?
 
-		return &proto.Ack{Outcome: "Succes"}, nil
+		return &proto.Ack{Outcome: "Success"}, nil
 	
 	// Update allBidders
 
@@ -72,7 +72,14 @@ func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.
 	if !s.isLeader { // All non-leaders reject client requests. (For now): Uses a gRPC status error and includes the leader's address...
 		return nil, status.Errorf(codes.FailedPrecondition, "not leader; leader=%s", s.leader)
 	} 
-	return &proto.HighestBid{Id: s.highestBidder,  Amount: s.highestBid, Status: "Auction over"}, nil
+
+		//Replaced Status: "Auction over" with this instead, so it will only print when the auction is actually over
+	status := "The auction is in process"
+	if time.Now().After(s.endTime){
+		status = "The auction is now over" 
+	}
+
+	return &proto.HighestBid{Id: s.highestBidder,  Amount: s.highestBid, Status: status}, nil
 }
 
 func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicate)(*proto.ReplicateAck, error){
