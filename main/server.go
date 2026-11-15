@@ -4,6 +4,7 @@ import(
 	proto "Hand-In-4/grpc"
 	"context"
 	"fmt"
+	"sync"
 	"net"
 	"log"
 	"time"
@@ -36,22 +37,32 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 		return nil, status.Errorf(codes.FailedPrecondition, "not leader; leader=%s", s.leader)
 	} 
 	fmt.Println("Client " + strconv.Itoa(int(bid.GetId())) + " send a bid");
-	if (bid.Amount > s.highestBid) {
+
+	// (bid.Amount > s.highestBid)
+
+	if bid.GetAmount() <= 0 || time.Now().After(s.endTime) { 
+		return &proto.Ack{Outcome: "Auction is closed"}, nil //or/and invalid amount
+	}
+	if bid.GetAmount() <= s.highestBid{
+		return &proto.Ack{Outcome: "Unsuccesfull"}, nil //Bid too low
+	}
+
 		s.highestBid = bid.GetAmount()
 		s.highestBidder = bid.GetId()
+		s.allBidders[strconv.Itoa(int(bid.GetId()))] = true
 
 		w := csv.NewWriter(s.database);
 		writeInDatabase(*w,bid.GetId(),bid.GetAmount())
 
 		// Opdater backup servere før den sender til klienten
 
-		replicateMessage(bid.GetAmount())
+		//replicateMessage(bid.GetAmount()) //remove ?
 
 		return &proto.Ack{Outcome: "Succes"}, nil
-	}
+	
 	// Update allBidders
 
-	return &proto.Ack{Outcome: "Unsuccesfull"}, nil
+	//return &proto.Ack{Outcome: "Unsuccesfull"}, nil
 }
 
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
