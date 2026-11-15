@@ -17,6 +17,7 @@ import(
 
 type AuctionServer struct {
 	proto.UnimplementedAuctionServer
+	//mu              sync.Mutex //mutex to fix concurrency issues
 	id 				int64
 	isLeader 		bool
 	leader			string
@@ -85,7 +86,7 @@ func makeServer(port string, NodeId int64, database *os.File) {
 	
 	server := &AuctionServer{
 		id: 		NodeId,
-		isLeader: 	NodeId == 2,	// Midlertidigt hardcoded til at være højeste Id ud af portene
+		isLeader: 	NodeId == 2,	// Midlertidigt hardcoded til at være højeste Id ud af portene, kan benytte heartbeat gRPC Ping?
 		leader:		"localhost:5052",	// Midlertidigt hardcoded
 		peers: 		[]string{"localhost:5050", "localhost:5051", "localhost:5052"}, // Midlertidigt hardcoded til at være på de 3 porte 
 		highestBid: 0,
