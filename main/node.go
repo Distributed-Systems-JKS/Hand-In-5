@@ -7,12 +7,13 @@ import(
 	"os"
 	"fmt"
 	"io"
-
 )
 
-func makeCSVfile(){
+func makeCSVfile(serverID int64){
 	//Create a csv file
-	f, err := os.Create("Data.csv")
+
+	filename := "Data" + strconv.Itoa(int(serverID)) + ".csv"
+	f, err := os.Create(filename)
     if err != nil {
         log.Fatal(err)
     }
@@ -59,23 +60,9 @@ func makeCSVfile(){
 
 	fmt.Println(lastRecord)
 
-	
-
 }
 
 func main(){
-
-	makeCSVfile()
-	
-	/* portFlag := flag.String("port", "5050", "The port for this server to listen on")
-	flag.Parse()
-	port := *portFlag
-	
-	idInt, err := strconv.ParseInt(port[len(port)-1:], 10, 64) //get the last digit of the port and set as id
-	if(err != nil){
-		log.Printf("Could not convert id %v", err)
-	}*/
-
 
 	// Hardcoded to make 3 servers at the moment
 	basePort := "505"

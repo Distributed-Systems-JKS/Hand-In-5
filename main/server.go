@@ -33,6 +33,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 		s.highestBid = bid.GetAmount()
 		s.highestBidder = bid.GetId()
 		// Opdater backup servere før den sender til klienten
+		//Get acknowledgement from other server that update has been received
 		return &proto.Ack{Outcome: "Succes"}, nil
 	}
 	// Update allBidders
@@ -46,7 +47,7 @@ func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.
 	return &proto.HighestBid{Id: s.highestBidder,  Amount: s.highestBid, Status: "Auction over"}, nil
 }
 func makeServer(port string, NodeId int64) {
-	
+	makeCSVfile(NodeId)
 	// Listen on TCP port
 	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)
