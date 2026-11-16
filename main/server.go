@@ -67,7 +67,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
 	s.mu.Lock()
-	defer.s.mu.Lock() //To take turns during the auction, so not all bids run at the same time
+	defer s.mu.Lock() //To take turns during the auction, so not all bids run at the same time
 	
 	if !s.isLeader { // All non-leaders reject client requests. (For now): Uses a gRPC status error and includes the leader's address...
 		return nil, status.Errorf(codes.FailedPrecondition, "not leader; leader=%s", s.leader)
