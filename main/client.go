@@ -123,8 +123,6 @@ func replicateMessage(amount int64){
 
 		fmt.Println("Replicate: " + reply.Outcome)
 	}
-
-
 	
 }
 
