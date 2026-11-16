@@ -6,66 +6,79 @@ import(
 	"strconv"
 	"log"
 	"context"
+	"os"
+	"math/rand/v2"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+	var id int64
+	var nodes [3]string // Addresses of other nodes
+	var leaderNodeId int // Last known leader
+	var clients[3] proto.AuctionClient
+	var database *os.File
 
-func makeClient(port string) {
-
-	address := fmt.Sprintf("localhost:%s", port)
-	
-	//conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//client := proto.NewClientServerClient(conn)
+func makeClient(port string, nodeId int64, databaseImport *os.File) {
+	id = nodeId
+	leaderNodeId = 2
+	database = databaseImport
 
 	//making the other client stubs, so we can communicate to the other servers
-	var clients[2] proto.AuctionClient
-	clientPosition := 0 //making sure that we only add two clients to the list in the for-loop
 	for i := 0; i < 3; i++ {
 		var basePort string = "localhost:505" + strconv.Itoa(i);
-		if(basePort != address){
-			conn, err := grpc.NewClient(basePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			//log.Printf("Connecting to gRPC server on port 505" + strconv.Itoa(i))
-			if err != nil {
-				log.Fatalf("Did not connect: %v", err)
-			}
-			clients[clientPosition] = proto.NewAuctionClient(conn)
-			clientPosition++
+		conn, err := grpc.NewClient(basePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatalf("Did not connect: %v", err)
 		}
-		
-	}
+		clients[i] = proto.NewAuctionClient(conn)
+		fmt.Println(i, ": ", clients[i]);
+		}
 
-
-	bid(clients)
-	result(clients)
+		bid(clients)
+		result(clients)
 	
 }
 
-func bid(clients[2] proto.AuctionClient){
-	
-	for i := range clients{
-		reply, err := clients[i].Bid(context.Background(), &proto.Bid{Id: 2, Amount: 30}, grpc.WaitForReady(true))
-		fmt.Println(reply.Outcome)
+func bid(clients[3] proto.AuctionClient){
+	bid := &proto.Bid{Id: id, Amount: int64(rand.IntN(300))}
 
+	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))
+	
+	if(err != nil){
+			log.Println(err)
+			return;
+		}
+	fmt.Println(reply.Outcome)
+
+}
+
+func result(clients[3] proto.AuctionClient){
+	
+		reply, err := clients[leaderNodeId].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
 		if(err != nil){
 			log.Println(err)
 			return;
 		}
-	}
-	
-	
-}
-
-func result(clients[2] proto.AuctionClient){
-	
-	for i := range clients{
-		reply, err := clients[i].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
 		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
 
-		if(err != nil){
-			log.Println(err)
-			return;
-		}
-	}
 }
+
+func sendReplication(bidderId int64, bidderAmount int64){
+
+		for i := 0; i < 3; i++ {
+			if(i != leaderNodeId){
+				reply, err := clients[i].Replicate(context.Background(), &proto.Replicate{Id: bidderId, Amount: bidderAmount}, grpc.WaitForReady(true))
+				if(err != nil){
+					log.Println(err)
+				
+					continue;
+				}
+
+				fmt.Println(reply.Outcome);
+
+		}
+		
+}
+}
+

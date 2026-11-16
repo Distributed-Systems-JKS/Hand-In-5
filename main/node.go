@@ -11,7 +11,62 @@ import(
 
 )
 
-func makeCSVfile(){
+
+
+func main(){
+
+	//makeCSVfile()
+	
+	portFlag := flag.String("port", "5050", "The port for this server to listen on")
+	flag.Parse()
+	port := *portFlag
+	
+
+
+	
+	idInt, err := strconv.ParseInt(port[len(port)-1:], 10, 64) //get the last digit of the port and set as id
+	if(err != nil){
+		log.Printf("Could not convert id %v", err)
+	}
+
+	log.Println((idInt))
+
+	
+	database := makeDatabase(int64(idInt))
+	go makeServer(*portFlag, idInt, database)
+
+	go makeClient(*portFlag, idInt, database)
+
+	select{} //so our main continues to run even if the goroutine finishes temporarily
+
+}
+
+func makeDatabase(id int64) *os.File{
+	//Create a csv file
+	f, err := os.Create("Data" + strconv.Itoa(int(id)) + ".csv");
+    if err != nil {
+        log.Fatal(err)
+    }
+    //defer f.Close()
+
+	//making a csv writer
+   	w := csv.NewWriter(f)
+
+	//Make a header in csv
+    header := [][]string{
+        {"Id", "amount"},
+    }
+
+	//write the header in csv
+	w.Write(header[0])
+
+	//Ensures that the written data is in the csv file
+	w.Flush()
+
+	return f;
+}
+
+func makeCSVfile(){ //Er her bare for at se hvordan man læser i en csv fil
 	//Create a csv file
 	f, err := os.Create("Data.csv")
     if err != nil {
@@ -60,31 +115,5 @@ func makeCSVfile(){
 	fmt.Println(lastRecord)
 
 	
-
-}
-
-func main(){
-
-	makeCSVfile()
-	
-	portFlag := flag.String("port", "5050", "The port for this server to listen on")
-	flag.Parse()
-	port := *portFlag
-	
-
-
-	
-	idInt, err := strconv.ParseInt(port[len(port)-1:], 10, 64) //get the last digit of the port and set as id
-	if(err != nil){
-		log.Printf("Could not convert id %v", err)
-	}
-
-	log.Println((idInt))
-
-	go makeServer(*portFlag)
-
-	go makeClient(*portFlag)
-
-	select{} //so our main continues to run even if the goroutine finishes temporarily
 
 }
