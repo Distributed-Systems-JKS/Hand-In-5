@@ -23,7 +23,7 @@ const (
 
 type Bid struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Amount        int64                  `protobuf:"varint,2,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -59,11 +59,11 @@ func (*Bid) Descriptor() ([]byte, []int) {
 	return file_grpc_proto_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Bid) GetId() int64 {
+func (x *Bid) GetName() string {
 	if x != nil {
-		return x.Id
+		return x.Name
 	}
-	return 0
+	return ""
 }
 
 func (x *Bid) GetAmount() int64 {
@@ -119,7 +119,7 @@ func (x *Ack) GetOutcome() string {
 
 type HighestBid struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Amount        int64                  `protobuf:"varint,2,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	Status        string                 `protobuf:"bytes,3,opt,name=Status,proto3" json:"Status,omitempty"` //maybe not neccesary, but just status if the auction is over or not
 	unknownFields protoimpl.UnknownFields
@@ -156,11 +156,11 @@ func (*HighestBid) Descriptor() ([]byte, []int) {
 	return file_grpc_proto_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *HighestBid) GetId() int64 {
+func (x *HighestBid) GetName() string {
 	if x != nil {
-		return x.Id
+		return x.Name
 	}
-	return 0
+	return ""
 }
 
 func (x *HighestBid) GetAmount() int64 {
@@ -179,7 +179,7 @@ func (x *HighestBid) GetStatus() string {
 
 type Replicate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Amount        int64                  `protobuf:"varint,2,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -215,11 +215,11 @@ func (*Replicate) Descriptor() ([]byte, []int) {
 	return file_grpc_proto_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *Replicate) GetId() int64 {
+func (x *Replicate) GetName() string {
 	if x != nil {
-		return x.Id
+		return x.Name
 	}
-	return 0
+	return ""
 }
 
 func (x *Replicate) GetAmount() int64 {
@@ -329,19 +329,19 @@ var File_grpc_proto_proto protoreflect.FileDescriptor
 
 const file_grpc_proto_proto_rawDesc = "" +
 	"\n" +
-	"\x10grpc/proto.proto\x12\x04grpc\"-\n" +
-	"\x03bid\x12\x0e\n" +
-	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x16\n" +
+	"\x10grpc/proto.proto\x12\x04grpc\"1\n" +
+	"\x03bid\x12\x12\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x16\n" +
 	"\x06Amount\x18\x02 \x01(\x03R\x06Amount\"\x1f\n" +
 	"\x03ack\x12\x18\n" +
-	"\aOutcome\x18\x01 \x01(\tR\aOutcome\"L\n" +
+	"\aOutcome\x18\x01 \x01(\tR\aOutcome\"P\n" +
 	"\n" +
-	"highestBid\x12\x0e\n" +
-	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x16\n" +
+	"highestBid\x12\x12\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x16\n" +
 	"\x06Amount\x18\x02 \x01(\x03R\x06Amount\x12\x16\n" +
-	"\x06Status\x18\x03 \x01(\tR\x06Status\"3\n" +
-	"\treplicate\x12\x0e\n" +
-	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x16\n" +
+	"\x06Status\x18\x03 \x01(\tR\x06Status\"7\n" +
+	"\treplicate\x12\x12\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x16\n" +
 	"\x06Amount\x18\x02 \x01(\x03R\x06Amount\"P\n" +
 	"\freplicateAck\x12\x0e\n" +
 	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x16\n" +

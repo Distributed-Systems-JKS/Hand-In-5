@@ -22,6 +22,18 @@ Write in the third terminal:
 ```bash
 go run ./main  -port=5052
 ```
+
+Write in the fourth terminal
+
+```bash
+go run bidder/bidder.go  -name=Bidder1
+```
+Write in the fifth terminal:
+
+```bash
+go run bidder/bidder.go  -name=Bidder2
+```
+
 ## Own notes (DELETE WHEN SUBMITTING)
 
 ### Update proto file

@@ -24,7 +24,7 @@ type AuctionServer struct {
 	leader			string
 	peers 			[]string // Addresses of other nodes
 	highestBid 		int64
-	highestBidder 	int64
+	highestBidder 	string
 	allBidders 		map[string]bool
 	endTime 		time.Time
 	database		*os.File
@@ -34,7 +34,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	s.mu.Lock() //Lock now
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 
-	fmt.Println("Client " + strconv.Itoa(int(bid.GetId())) + " send a bid");
+	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
 	if bid.GetAmount() <= 0 || time.Now().After(s.endTime) { 
 		return &proto.Ack{Outcome: "Auction is closed"}, nil //or/and invalid amount
@@ -44,15 +44,15 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	}
 
 	s.highestBid = bid.GetAmount()
-	s.highestBidder = bid.GetId()
+	s.highestBidder = bid.GetName()
 
 	//s.allBidders[strconv.Itoa(int(bid.GetId()))] = true
 
 	w := csv.NewWriter(s.database);
-	writeInDatabase(*w,bid.GetId(),bid.GetAmount())
+	writeInDatabase(*w,bid.GetName(),bid.GetAmount())
 
 	// Opdater backup servere før den sender til klienten
-	sendReplication(bid.GetId(), bid.GetAmount())
+	sendReplication(bid.GetName(), bid.GetAmount())
 		
 	return &proto.Ack{Outcome: "Success"}, nil
 	
@@ -70,23 +70,23 @@ func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.
 		status = "The auction is now over" 
 	}
 
-	return &proto.HighestBid{Id: s.highestBidder,  Amount: s.highestBid, Status: status}, nil
+	return &proto.HighestBid{Name: s.highestBidder,  Amount: s.highestBid, Status: status}, nil
 }
 
 func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicate)(*proto.ReplicateAck, error){
 	//write in the database
 	w := csv.NewWriter(database)
-	writeInDatabase(*w,replicate.GetId(), replicate.GetAmount())
+	writeInDatabase(*w,replicate.GetName(), replicate.GetAmount())
 
 	//Update highest bidder here??
 	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
-	return &proto.ReplicateAck{Id: replicate.GetId(), Amount: replicate.GetAmount(), Outcome: "Success"}, nil
+	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 }
 
 
-func writeInDatabase(w csv.Writer, id int64, amount int64){
+func writeInDatabase(w csv.Writer, name string, amount int64){
 	
-	bid := [][]string{{strconv.Itoa(int(id)), strconv.Itoa(int(amount))}}
+	bid := [][]string{{name, strconv.Itoa(int(amount))}}
 
 	w.Write(bid[0])
 	

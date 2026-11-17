@@ -54,7 +54,7 @@ func makeDatabase(id int64) *os.File{
 
 	//Make a header in csv
     header := [][]string{
-        {"Id", "amount"},
+        {"Name", "amount"},
     }
 
 	//write the header in csv

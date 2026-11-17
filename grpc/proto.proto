@@ -11,7 +11,7 @@ service Auction{
 }
 
 message bid{
-    int64 Id = 1;
+    string Name = 1;
     int64 Amount = 2;
 }
 
@@ -20,13 +20,13 @@ message ack{
 }
 
 message highestBid{
-    int64 Id = 1;
+    string Name = 1;
     int64 Amount = 2;
     string Status = 3; //maybe not neccesary, but just status if the auction is over or not
 }
 
 message replicate{
-    int64 Id = 1;
+    string Name = 1;
     int64 Amount = 2;
 }
 

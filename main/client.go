@@ -7,7 +7,6 @@ import(
 	"log"
 	"context"
 	"os"
-	"math/rand/v2"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,40 +34,16 @@ func makeClient(port string, nodeId int64, databaseImport *os.File) {
 		fmt.Println(i, ": ", clients[i]);
 		}
 
-		bid(clients)
-		result(clients)
 	
 }
 
-func bid(clients[3] proto.AuctionClient){
-	bid := &proto.Bid{Id: id, Amount: int64(rand.IntN(300))}
 
-	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))
-	
-	if(err != nil){
-			log.Println(err)
-			return;
-		}
-	fmt.Println(reply.Outcome)
 
-}
-
-func result(clients[3] proto.AuctionClient){
-	
-		reply, err := clients[leaderNodeId].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
-		if(err != nil){
-			log.Println(err)
-			return;
-		}
-		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
-
-}
-
-func sendReplication(bidderId int64, bidderAmount int64){
+func sendReplication(bidderName string, bidderAmount int64){
 
 		for i := 0; i < 3; i++ {
 			if(i != leaderNodeId){
-				reply, err := clients[i].Replicate(context.Background(), &proto.Replicate{Id: bidderId, Amount: bidderAmount}, grpc.WaitForReady(true))
+				reply, err := clients[i].Replicate(context.Background(), &proto.Replicate{Name: bidderName, Amount: bidderAmount}, grpc.WaitForReady(true))
 				if(err != nil){
 					log.Println(err)
 				
