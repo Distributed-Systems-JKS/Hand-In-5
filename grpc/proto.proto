@@ -8,6 +8,8 @@ service Auction{
     rpc Bid(bid) returns (ack){};
     rpc Result(empty) returns (highestBid){};
     rpc Replicate(replicate) returns (replicateAck){};
+    rpc Election(empty) returns (election){};
+    rpc ServerNotResponding(empty) returns (election){};
 }
 
 message bid{
@@ -35,5 +37,11 @@ message replicateAck{
     int64 Amount = 2;
     string Outcome = 3;
 }
+
+message election{
+    int64 Id = 1;
+    bool isLeader = 2;
+}
+
 
 message empty{}

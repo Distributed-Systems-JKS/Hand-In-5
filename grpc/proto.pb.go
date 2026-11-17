@@ -289,6 +289,58 @@ func (x *ReplicateAck) GetOutcome() string {
 	return ""
 }
 
+type Election struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
+	IsLeader      bool                   `protobuf:"varint,2,opt,name=isLeader,proto3" json:"isLeader,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Election) Reset() {
+	*x = Election{}
+	mi := &file_grpc_proto_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Election) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Election) ProtoMessage() {}
+
+func (x *Election) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_proto_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Election.ProtoReflect.Descriptor instead.
+func (*Election) Descriptor() ([]byte, []int) {
+	return file_grpc_proto_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Election) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Election) GetIsLeader() bool {
+	if x != nil {
+		return x.IsLeader
+	}
+	return false
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -297,7 +349,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_grpc_proto_proto_msgTypes[5]
+	mi := &file_grpc_proto_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -309,7 +361,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_proto_proto_msgTypes[5]
+	mi := &file_grpc_proto_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,7 +374,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_grpc_proto_proto_rawDescGZIP(), []int{5}
+	return file_grpc_proto_proto_rawDescGZIP(), []int{6}
 }
 
 var File_grpc_proto_proto protoreflect.FileDescriptor
@@ -346,12 +398,17 @@ const file_grpc_proto_proto_rawDesc = "" +
 	"\freplicateAck\x12\x0e\n" +
 	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x16\n" +
 	"\x06Amount\x18\x02 \x01(\x03R\x06Amount\x12\x18\n" +
-	"\aOutcome\x18\x03 \x01(\tR\aOutcome\"\a\n" +
-	"\x05empty2\x87\x01\n" +
+	"\aOutcome\x18\x03 \x01(\tR\aOutcome\"6\n" +
+	"\belection\x12\x0e\n" +
+	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x1a\n" +
+	"\bisLeader\x18\x02 \x01(\bR\bisLeader\"\a\n" +
+	"\x05empty2\xe8\x01\n" +
 	"\aAuction\x12\x1d\n" +
 	"\x03Bid\x12\t.grpc.bid\x1a\t.grpc.ack\"\x00\x12)\n" +
 	"\x06Result\x12\v.grpc.empty\x1a\x10.grpc.highestBid\"\x00\x122\n" +
-	"\tReplicate\x12\x0f.grpc.replicate\x1a\x12.grpc.replicateAck\"\x00B\tZ\a./protob\x06proto3"
+	"\tReplicate\x12\x0f.grpc.replicate\x1a\x12.grpc.replicateAck\"\x00\x12)\n" +
+	"\bElection\x12\v.grpc.empty\x1a\x0e.grpc.election\"\x00\x124\n" +
+	"\x13ServerNotResponding\x12\v.grpc.empty\x1a\x0e.grpc.election\"\x00B\tZ\a./protob\x06proto3"
 
 var (
 	file_grpc_proto_proto_rawDescOnce sync.Once
@@ -365,24 +422,29 @@ func file_grpc_proto_proto_rawDescGZIP() []byte {
 	return file_grpc_proto_proto_rawDescData
 }
 
-var file_grpc_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_grpc_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_grpc_proto_proto_goTypes = []any{
 	(*Bid)(nil),          // 0: grpc.bid
 	(*Ack)(nil),          // 1: grpc.ack
 	(*HighestBid)(nil),   // 2: grpc.highestBid
 	(*Replicate)(nil),    // 3: grpc.replicate
 	(*ReplicateAck)(nil), // 4: grpc.replicateAck
-	(*Empty)(nil),        // 5: grpc.empty
+	(*Election)(nil),     // 5: grpc.election
+	(*Empty)(nil),        // 6: grpc.empty
 }
 var file_grpc_proto_proto_depIdxs = []int32{
 	0, // 0: grpc.Auction.Bid:input_type -> grpc.bid
-	5, // 1: grpc.Auction.Result:input_type -> grpc.empty
+	6, // 1: grpc.Auction.Result:input_type -> grpc.empty
 	3, // 2: grpc.Auction.Replicate:input_type -> grpc.replicate
-	1, // 3: grpc.Auction.Bid:output_type -> grpc.ack
-	2, // 4: grpc.Auction.Result:output_type -> grpc.highestBid
-	4, // 5: grpc.Auction.Replicate:output_type -> grpc.replicateAck
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	6, // 3: grpc.Auction.Election:input_type -> grpc.empty
+	6, // 4: grpc.Auction.ServerNotResponding:input_type -> grpc.empty
+	1, // 5: grpc.Auction.Bid:output_type -> grpc.ack
+	2, // 6: grpc.Auction.Result:output_type -> grpc.highestBid
+	4, // 7: grpc.Auction.Replicate:output_type -> grpc.replicateAck
+	5, // 8: grpc.Auction.Election:output_type -> grpc.election
+	5, // 9: grpc.Auction.ServerNotResponding:output_type -> grpc.election
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -399,7 +461,7 @@ func file_grpc_proto_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grpc_proto_proto_rawDesc), len(file_grpc_proto_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

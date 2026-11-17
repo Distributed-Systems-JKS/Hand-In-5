@@ -14,6 +14,8 @@ import(
 	"os"
 	"strconv"
 	"encoding/csv"
+	"google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
 )
 
 type AuctionServer struct {
@@ -22,7 +24,7 @@ type AuctionServer struct {
 	id 				int64
 	isLeader 		bool
 	leader			string
-	peers 			[]string // Addresses of other nodes
+	peers 			[]int64 // Ids of other nodes
 	highestBid 		int64
 	highestBidder 	string
 	allBidders 		map[string]bool
@@ -36,9 +38,9 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
-	if bid.GetAmount() <= 0 || time.Now().After(s.endTime) { 
-		return &proto.Ack{Outcome: "Auction is closed"}, nil //or/and invalid amount
-	}
+	//if bid.GetAmount() <= 0 || time.Now().After(s.endTime) { 
+	//	return &proto.Ack{Outcome: "Auction is closed"}, nil //or/and invalid amount
+	//}
 	if bid.GetAmount() <= s.highestBid{
 		return &proto.Ack{Outcome: "Unsuccesfull"}, nil //Bid too low
 	}
@@ -83,6 +85,39 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 }
 
+func (s *AuctionServer) Election(ctx context.Context, election *proto.Empty)(*proto.Election, error){
+	//just return because node only sends out to high-id nodes
+	return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
+}
+
+func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.Empty)(*proto.Election, error){
+	
+	for i := 0; i < 3; i++ {
+				ctxx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+				if(int64(i) > id){
+					fmt.Println(id, ": sending election to ", i)
+					reply, err := clients[i].Election(ctxx, &proto.Empty{}, grpc.WaitForReady(true))
+					if(err != nil){
+						if status.Code(err) == codes.DeadlineExceeded {
+						fmt.Println("Exceeded")
+						// server did not reply in time, notify the other servers
+        				s.isLeader = true;
+						
+						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
+    					}
+						continue;
+						
+					}
+					log.Println("Got reply from: ", reply.Id)
+					
+				
+    	}
+	}
+	return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
+}
+	
+	
+
 
 func writeInDatabase(w csv.Writer, name string, amount int64){
 	
@@ -93,6 +128,7 @@ func writeInDatabase(w csv.Writer, name string, amount int64){
 	//Ensures that the written data is in the csv file
 	w.Flush()
 }
+
 func makeServer(port string, NodeId int64, database *os.File) {
 	// Listen on TCP port
 	address := fmt.Sprintf(":%s", port)
@@ -107,7 +143,7 @@ func makeServer(port string, NodeId int64, database *os.File) {
 		isLeader: 	NodeId == 2,	// Midlertidigt hardcoded til at være højeste Id ud af portene, kan benytte heartbeat gRPC Ping?
 		leader:		"localhost:5052",	// Midlertidigt hardcoded
 		highestBid: 0,
-		endTime: 	time.Now().Add(100 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
+		endTime: 	time.Now().Add(10000 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
 		database:   database,
 	}
 	// Creating a new gRPC server instance
@@ -121,3 +157,15 @@ func makeServer(port string, NodeId int64, database *os.File) {
 	}
 
 }
+
+/*func ElectionTimer(s *AuctionServer ) *proto.Election{
+	start := time.Now()
+	for{
+		if time.Since(start) >= 10*time.Second {
+		//if server uses more than 10 seconds to answer tell the other servers
+		s.isLeader = true;
+			return &proto.Election{Id: id, IsLeader: s.isLeader};
+		}	
+	}
+}*/
+

@@ -12,8 +12,11 @@ import (
 	"flag"
 	"time"
 
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
 )
 
 var clients[3] proto.AuctionClient
@@ -52,10 +55,10 @@ func main(){
 				log.Println(err)
 			}
 
-			bid(clients, amount)
+			bid(amount)
 
 		} else if (text == "/result\n"){
-			result(clients)
+			result()
 		} else {
 			fmt.Println("Not a known command, write /bid to make a bid and /result to see the highest bid")
 		}
@@ -67,39 +70,78 @@ func main(){
 
 }
 
-func bid(clients[3] proto.AuctionClient, amount int64){
-	go replyTime()
-	bid := &proto.Bid{Name: name, Amount: amount}
+func bid(amount int64){
+	//making the bidder wait 10 seconds on reply, otherwise there will be a deadlineexceeded error
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second) 
+	reply, err := clients[leaderNodeId].Bid(ctx, &proto.Bid{Name: name, Amount: amount}, grpc.WaitForReady(true))
 
-	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))
+
+	if(err != nil){
+		if status.Code(err) == codes.DeadlineExceeded {
+			// server did not reply in time, notify the other servers
+        	notifyBackupServers(amount, true)
+			return;
+    	}
+		log.Println(err)
+		return;
+	}
+	
+	// server replied in time, print outcome
+	fmt.Println(reply.Outcome)
+	
+}
+
+
+func result(){
+	//making the bidder wait 10 seconds on reply, otherwise there will be a deadlineexceeded error
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	reply, err := clients[leaderNodeId].Result(ctx, &proto.Empty{}, grpc.WaitForReady(true))
 	
 	if(err != nil){
-			log.Println(err)
+		if status.Code(err) == codes.DeadlineExceeded {
+			// server did not reply in time, notify the other servers
+        	notifyBackupServers(0, false)
 			return;
-		}
-
-	
-	fmt.Println(reply.Outcome)
-}
-
-func result(clients[3] proto.AuctionClient){
-	go replyTime()
-		reply, err := clients[leaderNodeId].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
-		if(err != nil){
-			log.Println(err)
-			return;
-		}
-		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
-
-}
-
-func replyTime(){
-		start := time.Now()
-		for{
-			if time.Since(start) >= 10*time.Second { 
-		//if server uses more than 10 seconds to answer tell the other servers
-		fmt.Println("Server not responding") //tell the other servers that leader is not answering
+    	}
+		log.Println(err)
 		return;
-		}
-		}
-	};
+	}
+
+
+
+   	// server replied in time, print result
+	fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
+}
+		
+
+
+
+
+func notifyBackupServers(amount int64, isBid bool){
+		
+		// server did not reply in time, notify the other servers
+		for i := 2; i >= 0; i-- {
+			if(i != leaderNodeId){
+				fmt.Println(i)
+				reply, err := clients[i].ServerNotResponding(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
+			
+				if(err != nil){
+				log.Println(err)
+				}
+			
+				fmt.Println(reply.GetId(), " is leader?: ", reply.IsLeader)
+					
+				if(reply.GetIsLeader() == true){
+					leaderNodeId = int(reply.GetId())
+					if(isBid){
+						bid(amount)
+					} else {
+						result()
+					}
+					return;
+				}
+    
+}
+		
+	}};
