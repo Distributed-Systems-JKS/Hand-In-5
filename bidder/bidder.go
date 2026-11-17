@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"flag"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,7 +19,7 @@ import (
 var clients[3] proto.AuctionClient
 var id int64
 var nodes [3]string // Addresses of other nodes
-var leaderNodeId int // Last known leader
+var leaderNodeId int = 2 // Last known leader
 var name string;
 
 func main(){
@@ -67,6 +68,7 @@ func main(){
 }
 
 func bid(clients[3] proto.AuctionClient, amount int64){
+	go replyTime()
 	bid := &proto.Bid{Name: name, Amount: amount}
 
 	reply, err := clients[leaderNodeId].Bid(context.Background(), bid, grpc.WaitForReady(true))
@@ -75,12 +77,13 @@ func bid(clients[3] proto.AuctionClient, amount int64){
 			log.Println(err)
 			return;
 		}
-	fmt.Println(reply.Outcome)
 
+	
+	fmt.Println(reply.Outcome)
 }
 
 func result(clients[3] proto.AuctionClient){
-	
+	go replyTime()
 		reply, err := clients[leaderNodeId].Result(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
 		if(err != nil){
 			log.Println(err)
@@ -89,3 +92,14 @@ func result(clients[3] proto.AuctionClient){
 		fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
 
 }
+
+func replyTime(){
+		start := time.Now()
+		for{
+			if time.Since(start) >= 10*time.Second { 
+		//if server uses more than 10 seconds to answer tell the other servers
+		fmt.Println("Server not responding") //tell the other servers that leader is not answering
+		return;
+		}
+		}
+	};
