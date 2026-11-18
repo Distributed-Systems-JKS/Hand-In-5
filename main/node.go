@@ -21,9 +21,6 @@ func main(){
 	flag.Parse()
 	port := *portFlag
 	
-
-
-	
 	idInt, err := strconv.ParseInt(port[len(port)-1:], 10, 64) //get the last digit of the port and set as id
 	if(err != nil){
 		log.Printf("Could not convert id %v", err)
@@ -57,7 +54,7 @@ func makeDatabase(id int64) *os.File{
         {"Name", "amount"},
     }
 
-	//write the header in csv
+	//Write the header in csv
 	w.Write(header[0])
 
 	//Ensures that the written data is in the csv file
@@ -66,7 +63,7 @@ func makeDatabase(id int64) *os.File{
 	return f;
 }
 
-func makeCSVfile(){ //Er her bare for at se hvordan man læser i en csv fil
+func makeCSVfile(){ //To see how to read a csv file
 	//Create a csv file
 	f, err := os.Create("Data.csv")
     if err != nil {
@@ -74,7 +71,7 @@ func makeCSVfile(){ //Er her bare for at se hvordan man læser i en csv fil
     }
     defer f.Close()
 
-	//making a csv writer
+	//Making a csv writer
    	w := csv.NewWriter(f)
 
 	//Make a header in csv
@@ -82,10 +79,10 @@ func makeCSVfile(){ //Er her bare for at se hvordan man læser i en csv fil
         {"Id", "amount", "version"},
     }
 
-	//write the header in csv
+	//Write the header in csv
 	w.Write(header[0])
 
-	//write other info in csv
+	//Write other info in csv
 	nodes := [][]string{
         {"1", "10", "1"},
 		{"2", "20", "2"},

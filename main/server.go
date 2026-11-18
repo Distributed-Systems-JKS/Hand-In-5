@@ -33,14 +33,11 @@ type AuctionServer struct {
 }
 
 func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, error) {
-	s.mu.Lock() //Lock now
+	s.mu.Lock()
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
-	//if bid.GetAmount() <= 0 || time.Now().After(s.endTime) { 
-	//	return &proto.Ack{Outcome: "Auction is closed"}, nil //or/and invalid amount
-	//}
 	if bid.GetAmount() <= s.highestBid{
 		return &proto.Ack{Outcome: "Unsuccesfull"}, nil //Bid too low
 	}
@@ -48,21 +45,18 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	s.highestBid = bid.GetAmount()
 	s.highestBidder = bid.GetName()
 
-	//s.allBidders[strconv.Itoa(int(bid.GetId()))] = true
-
 	w := csv.NewWriter(s.database);
 	writeInDatabase(*w,bid.GetName(),bid.GetAmount())
 
-	// Opdater backup servere før den sender til klienten
+	//Updating the backup serves before replying to client
 	sendReplication(bid.GetName(), bid.GetAmount())
 		
 	return &proto.Ack{Outcome: "Success"}, nil
 	
-	// Update allBidders
 }
 
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
-	s.mu.Lock() //lock now
+	s.mu.Lock() 
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 	
 
@@ -80,7 +74,6 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 	w := csv.NewWriter(database)
 	writeInDatabase(*w,replicate.GetName(), replicate.GetAmount())
 
-	//Update highest bidder here??
 	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
 	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 }
@@ -108,16 +101,13 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 						continue;
 						
 					}
-					log.Println("Got reply from: ", reply.Id)
-					
+					log.Println("Got reply from: ", reply.Id)	
 				
     	}
 	}
 	return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
 }
 	
-	
-
 
 func writeInDatabase(w csv.Writer, name string, amount int64){
 	
@@ -140,10 +130,10 @@ func makeServer(port string, NodeId int64, database *os.File) {
 
 	server := &AuctionServer{
 		id: 		NodeId,
-		isLeader: 	NodeId == 2,	// Midlertidigt hardcoded til at være højeste Id ud af portene, kan benytte heartbeat gRPC Ping?
-		leader:		"localhost:5052",	// Midlertidigt hardcoded
+		isLeader: 	NodeId == 2,	//Hardcoded: Leader is the highest node
+		leader:		"localhost:5052",	//Hardcoded host
 		highestBid: 0,
-		endTime: 	time.Now().Add(10000 * time.Second), // Skal dette være lamport clock i stedet? Ved ikke med synkronisering osv.
+		endTime: 	time.Now().Add(10000 * time.Second), 
 		database:   database,
 	}
 	// Creating a new gRPC server instance

@@ -33,10 +33,7 @@ func makeClient(port string, nodeId int64, databaseImport *os.File) {
 		clients[i] = proto.NewAuctionClient(conn)
 		fmt.Println(i, ": ", clients[i]);
 		}
-
-	
 }
-
 
 
 func sendReplication(bidderName string, bidderAmount int64){
