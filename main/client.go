@@ -2,7 +2,6 @@ package main;
 
 import(
 	proto "Hand-In-4/grpc"
-	"fmt"
 	"strconv"
 	"log"
 	"context"

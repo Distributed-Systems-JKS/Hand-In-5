@@ -114,20 +114,22 @@ func (s *AuctionServer) Election(ctx context.Context, election *proto.Election)(
 }
 
 func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.Empty)(*proto.Election, error){
-	
 	for i := 0; i < 3; i++ {
 				ctxx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 				if(int64(i) > id){
 					fmt.Println(id, ": sending election to ", i)
 					reply, err := clients[i].Election(ctxx, &proto.Election{Id: id, IsLeader: s.isLeader}, grpc.WaitForReady(true))
 					if(err != nil){
-						if (status.Code(err) == codes.DeadlineExceeded || reply.IsLeader == true) {
+						if (status.Code(err) == codes.DeadlineExceeded) {
 						fmt.Println("Exceeded")
 						// server did not reply in time or has a lower id, notify the other servers
         				s.isLeader = true;
 						//Send messsage to all clients that a leader has been renewed (selected)
-						return &proto.Election{Id: reply.Id, IsLeader: reply.IsLeader}, nil;
+						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
     					}
+						if(reply.IsLeader == true){
+							return &proto.Election{Id: reply.Id, IsLeader: reply.IsLeader}, nil;
+						}
 						continue;
 						
 					}
