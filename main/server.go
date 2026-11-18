@@ -135,7 +135,6 @@ func makeServer(port string, NodeId int64, database *os.File) {
 	// Listen on TCP port
 	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)
-
 	if err != nil {
 		log.Fatalf("failed to listen on %s: %v", address, err)
 	}

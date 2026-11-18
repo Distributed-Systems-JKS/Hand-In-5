@@ -1,7 +1,6 @@
 package main;
 
 import(
-	"flag"
 	"strconv"
 	"log"
 	"encoding/csv"
@@ -101,8 +100,9 @@ func makeCSVfile(){ //To see how to read a csv file
 	f.Seek(0, io.SeekStart) //make sure we are at the top of the file
 	r := csv.NewReader(f)
 	records, err := r.ReadAll()
-
-	log.Println(err)
+	if (err != nil) {
+		log.Printf("Error when reading csv file %v", err)
+	}
 
 	fmt.Println(len(records))
 
