@@ -49,13 +49,21 @@ func main(){
 		if(strings.HasPrefix(text, "/bid")){
 			bidInput := strings.Fields(text)
 			amountText := bidInput[len(bidInput)-1]
-			amount, err := strconv.ParseInt(amountText,10,64)
+			if(amountText == "/bid"){
+				//If there is no amount written after /bid
+				fmt.Println("Write the amount you want to bid after /bid")
+				
+			} else {
+				amount, err := strconv.ParseInt(amountText,10,64)
 			
-			if(err!=nil){
-				log.Println(err)
-			}
+			
+				if(err!=nil){
+					log.Println(err)
+				}
 
-			bid(amount)
+				bid(amount)
+			}
+			
 
 		} else if (text == "/result\n"){
 			result()
