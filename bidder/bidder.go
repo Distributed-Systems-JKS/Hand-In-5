@@ -38,7 +38,7 @@ func main(){
 			log.Fatalf("Did not connect: %v", err)
 		}
 		clients[i] = proto.NewAuctionClient(conn)
-		fmt.Println(i, ": ", clients[i]);
+	
 		}
 
 		reader := bufio.NewReader(os.Stdin)

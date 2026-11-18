@@ -34,7 +34,6 @@ func makeClient(port string, nodeId int64, databaseImport *os.File) {
 			log.Fatalf("Did not connect: %v", err)
 		}
 		clients[i] = proto.NewAuctionClient(conn)
-		fmt.Println(i, ": ", clients[i]);
 		}
 }
 
