@@ -8,7 +8,7 @@ service Auction{
     rpc Bid(bid) returns (ack){};
     rpc Result(empty) returns (highestBid){};
     rpc Replicate(replicate) returns (replicateAck){};
-    rpc Election(empty) returns (election){};
+    rpc Election(election) returns (election){};
     rpc ServerNotResponding(empty) returns (election){};
 }
 

@@ -402,12 +402,12 @@ const file_grpc_proto_proto_rawDesc = "" +
 	"\belection\x12\x0e\n" +
 	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x1a\n" +
 	"\bisLeader\x18\x02 \x01(\bR\bisLeader\"\a\n" +
-	"\x05empty2\xe8\x01\n" +
+	"\x05empty2\xeb\x01\n" +
 	"\aAuction\x12\x1d\n" +
 	"\x03Bid\x12\t.grpc.bid\x1a\t.grpc.ack\"\x00\x12)\n" +
 	"\x06Result\x12\v.grpc.empty\x1a\x10.grpc.highestBid\"\x00\x122\n" +
-	"\tReplicate\x12\x0f.grpc.replicate\x1a\x12.grpc.replicateAck\"\x00\x12)\n" +
-	"\bElection\x12\v.grpc.empty\x1a\x0e.grpc.election\"\x00\x124\n" +
+	"\tReplicate\x12\x0f.grpc.replicate\x1a\x12.grpc.replicateAck\"\x00\x12,\n" +
+	"\bElection\x12\x0e.grpc.election\x1a\x0e.grpc.election\"\x00\x124\n" +
 	"\x13ServerNotResponding\x12\v.grpc.empty\x1a\x0e.grpc.election\"\x00B\tZ\a./protob\x06proto3"
 
 var (
@@ -436,7 +436,7 @@ var file_grpc_proto_proto_depIdxs = []int32{
 	0, // 0: grpc.Auction.Bid:input_type -> grpc.bid
 	6, // 1: grpc.Auction.Result:input_type -> grpc.empty
 	3, // 2: grpc.Auction.Replicate:input_type -> grpc.replicate
-	6, // 3: grpc.Auction.Election:input_type -> grpc.empty
+	5, // 3: grpc.Auction.Election:input_type -> grpc.election
 	6, // 4: grpc.Auction.ServerNotResponding:input_type -> grpc.empty
 	1, // 5: grpc.Auction.Bid:output_type -> grpc.ack
 	2, // 6: grpc.Auction.Result:output_type -> grpc.highestBid

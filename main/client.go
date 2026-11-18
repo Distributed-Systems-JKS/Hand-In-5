@@ -7,9 +7,12 @@ import(
 	"log"
 	"context"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
 )
 
 	var id int64
@@ -36,24 +39,24 @@ func makeClient(port string, nodeId int64, databaseImport *os.File) {
 }
 
 
-func sendReplication(bidderName string, bidderAmount int64){
+func sendReplication(bidderName string, bidderAmount int64) bool{
+		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
+		
 		for i := 0; i < 3; i++ {
 			if(i != leaderNodeId){
-				reply, err := clients[i].Replicate(context.Background(), &proto.Replicate{Name: bidderName, Amount: bidderAmount}, grpc.WaitForReady(true))
+				reply, err := clients[i].Replicate(ctx, &proto.Replicate{Name: bidderName, Amount: bidderAmount}, grpc.WaitForReady(true))
 				if(err != nil){
-					log.Println(err)
-				
+					if (status.Code(err) == codes.DeadlineExceeded || reply.Outcome == "Unsuccessfull") {
+						//if there is no reply or replication has failed, replication has not gone through
+						return false;
+    				}
 					continue;
+					
 				}
-				//implement if server is not responding
-				//If the server is not responding -> 
-
-
-				fmt.Println(reply.Outcome);
-
 		}
 		
 }
+	return true;
 }
 

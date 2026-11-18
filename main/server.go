@@ -40,7 +40,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
 	if bid.GetAmount() <= s.highestBid{
-		return &proto.Ack{Outcome: "Unsuccesfull"}, nil //Bid too low
+		return &proto.Ack{Outcome: "Unsuccessfull"}, nil //Bid too low
 	}
 
 	s.highestBid = bid.GetAmount()
@@ -50,8 +50,11 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	writeInDatabase(*w,bid.GetName(),bid.GetAmount())
 
 	//Updating the backup serves before replying to client
-	sendReplication(bid.GetName(), bid.GetAmount())
-		
+	isReplicated := sendReplication(bid.GetName(), bid.GetAmount())
+	
+	if(!isReplicated){
+		return &proto.Ack{Outcome: "fail"}, nil
+	}
 	return &proto.Ack{Outcome: "Success"}, nil
 	
 }
@@ -82,17 +85,32 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 	if( err != nil){log.Println(err)}
 
 	lastRecord := data[len(data)-1]
-	s.highestBidder = lastRecord[0]
-	s.highestBid, err = strconv.ParseInt(lastRecord[1], 10, 64)
+
+	lastBidInDatabase, err := strconv.ParseInt(lastRecord[1], 10, 64)
+
+	//If last line in the database matches the replicate-message-values then replication is a success
+	if(lastRecord[0] == replicate.GetName() && lastBidInDatabase == replicate.GetAmount()){
+		s.highestBidder = lastRecord[0]
+		s.highestBid = lastBidInDatabase
+		
+		return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
+	}
 	
 
 	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
-	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
+	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Unsuccessfull"}, nil
+	
 }
 
-func (s *AuctionServer) Election(ctx context.Context, election *proto.Empty)(*proto.Election, error){
-	//just return because node only sends out to high-id nodes
-	return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
+func (s *AuctionServer) Election(ctx context.Context, election *proto.Election)(*proto.Election, error){
+	if(id < election.GetId()){
+		return &proto.Election{Id: id, IsLeader: false}, nil;
+	} else {
+		//In case election gets send to a server with a higher id
+		s.isLeader = true;
+		return &proto.Election{Id: id, IsLeader: true}, nil;
+	}
+	
 }
 
 func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.Empty)(*proto.Election, error){
@@ -101,14 +119,14 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 				ctxx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 				if(int64(i) > id){
 					fmt.Println(id, ": sending election to ", i)
-					reply, err := clients[i].Election(ctxx, &proto.Empty{}, grpc.WaitForReady(true))
+					reply, err := clients[i].Election(ctxx, &proto.Election{Id: id, IsLeader: s.isLeader}, grpc.WaitForReady(true))
 					if(err != nil){
-						if status.Code(err) == codes.DeadlineExceeded {
+						if (status.Code(err) == codes.DeadlineExceeded || reply.IsLeader == true) {
 						fmt.Println("Exceeded")
-						// server did not reply in time, notify the other servers
+						// server did not reply in time or has a lower id, notify the other servers
         				s.isLeader = true;
 						//Send messsage to all clients that a leader has been renewed (selected)
-						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
+						return &proto.Election{Id: reply.Id, IsLeader: reply.IsLeader}, nil;
     					}
 						continue;
 						

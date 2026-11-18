@@ -33,7 +33,7 @@ type AuctionClient interface {
 	Bid(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*Ack, error)
 	Result(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HighestBid, error)
 	Replicate(ctx context.Context, in *Replicate, opts ...grpc.CallOption) (*ReplicateAck, error)
-	Election(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Election, error)
+	Election(ctx context.Context, in *Election, opts ...grpc.CallOption) (*Election, error)
 	ServerNotResponding(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Election, error)
 }
 
@@ -75,7 +75,7 @@ func (c *auctionClient) Replicate(ctx context.Context, in *Replicate, opts ...gr
 	return out, nil
 }
 
-func (c *auctionClient) Election(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Election, error) {
+func (c *auctionClient) Election(ctx context.Context, in *Election, opts ...grpc.CallOption) (*Election, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Election)
 	err := c.cc.Invoke(ctx, Auction_Election_FullMethodName, in, out, cOpts...)
@@ -102,7 +102,7 @@ type AuctionServer interface {
 	Bid(context.Context, *Bid) (*Ack, error)
 	Result(context.Context, *Empty) (*HighestBid, error)
 	Replicate(context.Context, *Replicate) (*ReplicateAck, error)
-	Election(context.Context, *Empty) (*Election, error)
+	Election(context.Context, *Election) (*Election, error)
 	ServerNotResponding(context.Context, *Empty) (*Election, error)
 	mustEmbedUnimplementedAuctionServer()
 }
@@ -123,7 +123,7 @@ func (UnimplementedAuctionServer) Result(context.Context, *Empty) (*HighestBid, 
 func (UnimplementedAuctionServer) Replicate(context.Context, *Replicate) (*ReplicateAck, error) {
 	return nil, status.Error(codes.Unimplemented, "method Replicate not implemented")
 }
-func (UnimplementedAuctionServer) Election(context.Context, *Empty) (*Election, error) {
+func (UnimplementedAuctionServer) Election(context.Context, *Election) (*Election, error) {
 	return nil, status.Error(codes.Unimplemented, "method Election not implemented")
 }
 func (UnimplementedAuctionServer) ServerNotResponding(context.Context, *Empty) (*Election, error) {
@@ -205,7 +205,7 @@ func _Auction_Replicate_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _Auction_Election_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(Election)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func _Auction_Election_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: Auction_Election_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServer).Election(ctx, req.(*Empty))
+		return srv.(AuctionServer).Election(ctx, req.(*Election))
 	}
 	return interceptor(ctx, in, info, handler)
 }
