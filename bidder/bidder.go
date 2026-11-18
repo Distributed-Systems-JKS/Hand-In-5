@@ -41,6 +41,7 @@ func main(){
 	
 		}
 
+		fmt.Println("Welcome to the Auction. \n To make a bid write /bid <amount> \n To check the current state of the auction write /result")
 		reader := bufio.NewReader(os.Stdin)
 
 		for {
