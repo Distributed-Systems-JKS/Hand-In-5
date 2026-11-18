@@ -47,6 +47,9 @@ func sendReplication(bidderName string, bidderAmount int64){
 					continue;
 				}
 				//implement if server is not responding
+				//If the server is not responding -> 
+
+
 				fmt.Println(reply.Outcome);
 
 		}

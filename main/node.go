@@ -44,7 +44,6 @@ func makeDatabase(id int64) *os.File{
     if err != nil {
         log.Fatal(err)
     }
-    //defer f.Close()
 
 	//making a csv writer
    	w := csv.NewWriter(f)

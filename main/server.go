@@ -9,6 +9,7 @@ import(
 	"log"
 	"time"
 	"google.golang.org/grpc"
+	"io"
 	//"google.golang.org/grpc/codes"
 	//"google.golang.org/grpc/status"
 	"os"
@@ -74,6 +75,17 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 	w := csv.NewWriter(database)
 	writeInDatabase(*w,replicate.GetName(), replicate.GetAmount())
 
+	database.Seek(0, io.SeekStart) //make sure we are at the top of the file
+	r := csv.NewReader(database)
+	data, err := r.ReadAll()
+
+	if( err != nil){log.Println(err)}
+
+	lastRecord := data[len(data)-1]
+	s.highestBidder = lastRecord[0]
+	s.highestBid, err = strconv.ParseInt(lastRecord[1], 10, 64)
+	
+
 	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
 	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 }
@@ -95,7 +107,7 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 						fmt.Println("Exceeded")
 						// server did not reply in time, notify the other servers
         				s.isLeader = true;
-						
+						//Send messsage to all clients that a leader has been renewed (selected)
 						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
     					}
 						continue;
