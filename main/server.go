@@ -61,10 +61,8 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
 	s.mu.Lock() 
-	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
-	
+	defer s.mu.Unlock() 
 
-	//Replaced Status: "Auction over" with this instead, so it will only print when the auction is actually over
 	status := "The auction is in process"
 	if time.Now().After(s.endTime){
 		status = "The auction is now over" 
@@ -95,7 +93,6 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 		
 		return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 	}
-	
 
 	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
 	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Unsuccessfull"}, nil
@@ -110,7 +107,20 @@ func (s *AuctionServer) Election(ctx context.Context, election *proto.Election)(
 		s.isLeader = true;
 		return &proto.Election{Id: id, IsLeader: true}, nil;
 	}
-	
+}
+
+
+func (s *AuctionServer) NotifyBidders(){//Notify all bidders when an election is done, and new leader has been found
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+
+	/*
+	s.isLeader = true
+	log.Printf("A new leader has been elected: node %d", s.id)
+	s.notifyBidders()
+	*/
+
 }
 
 func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.Empty)(*proto.Election, error){

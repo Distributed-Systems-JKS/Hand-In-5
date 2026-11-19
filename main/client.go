@@ -40,7 +40,6 @@ func makeClient(port string, nodeId int64, databaseImport *os.File) {
 func sendReplication(bidderName string, bidderAmount int64) bool{
 		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-		
 		for i := 0; i < 3; i++ {
 			if(i != leaderNodeId){
 				reply, err := clients[i].Replicate(ctx, &proto.Replicate{Name: bidderName, Amount: bidderAmount}, grpc.WaitForReady(true))
