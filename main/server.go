@@ -105,23 +105,23 @@ func (s *AuctionServer) Election(ctx context.Context, election *proto.Election)(
 	} else {
 		//In case election gets send to a server with a higher id
 		s.isLeader = true;
+		fmt.Printf("A new leader has been elected: %d", s.id) //notify clients of new bidder
 		return &proto.Election{Id: id, IsLeader: true}, nil;
 	}
 }
 
-
+/*
 func (s *AuctionServer) NotifyBidders(){//Notify all bidders when an election is done, and new leader has been found
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-
-	/*
 	s.isLeader = true
 	log.Printf("A new leader has been elected: node %d", s.id)
 	s.notifyBidders()
-	*/
+	
 
 }
+*/
 
 func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.Empty)(*proto.Election, error){
 	for i := 0; i < 3; i++ {
