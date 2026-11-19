@@ -10,6 +10,7 @@ service Auction{
     rpc Replicate(replicate) returns (replicateAck){};
     rpc Election(election) returns (election){};
     rpc ServerNotResponding(empty) returns (election){};
+    rpc NotifyBidders(empty) returns (stream newLeader) 
 }
 
 message bid{
@@ -43,5 +44,8 @@ message election{
     bool isLeader = 2;
 }
 
+message newLeader{
+    int64 LeaderId = 1;
+}
 
 message empty{}

@@ -31,6 +31,7 @@ type AuctionServer struct {
 	allBidders 		map[string]bool
 	endTime 		time.Time
 	database		*os.File
+	notifications   []chan int64
 }
 
 func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, error) {
