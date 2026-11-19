@@ -34,6 +34,9 @@ type AuctionServer struct {
 }
 
 func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, error) {
+	if(time.Now().After(s.endTime)){
+		return &proto.Ack{Outcome: "Auction over, write /result to see the result"}, nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 
@@ -160,7 +163,7 @@ func makeServer(port string, NodeId int64, database *os.File) {
 		isLeader: 	NodeId == 2,	//Hardcoded: Leader is the highest node
 		leader:		"localhost:5052",	//Hardcoded host
 		highestBid: 0,
-		endTime: 	time.Now().Add(10000 * time.Second), 
+		endTime: 	time.Now().Add(180 * time.Second), 
 		database:   database,
 	}
 	// Creating a new gRPC server instance

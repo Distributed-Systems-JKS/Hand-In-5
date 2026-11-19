@@ -34,6 +34,8 @@ func main(){
 
 	go makeClient(*portFlag, idInt, database)
 
+
+
 	select{} //so our main continues to run even if the goroutine finishes temporarily
 
 }
