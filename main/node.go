@@ -111,6 +111,4 @@ func makeCSVfile(){ //To see how to read a csv file
 
 	fmt.Println(lastRecord)
 
-	
-
 }

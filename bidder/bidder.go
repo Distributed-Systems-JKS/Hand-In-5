@@ -62,9 +62,6 @@ func main(){
 		} else {
 			fmt.Println("Not a known command, write /bid to make a bid and /result to see the highest bid")
 		}
-
-	
-
 		
 	}
 
@@ -74,7 +71,6 @@ func bid(amount int64){
 	//making the bidder wait 10 seconds on reply, otherwise there will be a deadlineexceeded error
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second) 
 	reply, err := clients[leaderNodeId].Bid(ctx, &proto.Bid{Name: name, Amount: amount}, grpc.WaitForReady(true))
-
 
 	if(err != nil){
 		if status.Code(err) == codes.DeadlineExceeded {
@@ -108,15 +104,10 @@ func result(){
 		return;
 	}
 
-
-
    	// server replied in time, print result
 	fmt.Println("Amount: " + strconv.Itoa(int(reply.Amount)), ", status: " + reply.Status)
 }
 		
-
-
-
 
 func notifyBackupServers(amount int64, isBid bool){
 		

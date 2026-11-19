@@ -59,7 +59,6 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.HighestBid, error){
 	s.mu.Lock() 
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
-	
 
 	//Replaced Status: "Auction over" with this instead, so it will only print when the auction is actually over
 	status := "The auction is in process"
