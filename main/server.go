@@ -124,9 +124,11 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 						// server did not reply in time or has a lower id, notify the other servers
         				s.isLeader = true;
 						//Send messsage to all clients that a leader has been renewed (selected)
+						fmt.Println(id,": is leader")
 						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
     					}
 						if(reply.IsLeader == true){
+							//if leader was just slow at responding to bidder, then we send the information back, that this id is still the leader
 							return &proto.Election{Id: reply.Id, IsLeader: reply.IsLeader}, nil;
 						}
 						continue;

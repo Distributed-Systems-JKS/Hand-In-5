@@ -132,14 +132,12 @@ func notifyBackupServers(amount int64, isBid bool){
 		// server did not reply in time, notify the other servers
 		for i := 2; i >= 0; i-- {
 			if(i != leaderNodeId){
-				fmt.Println(i)
 				reply, err := clients[i].ServerNotResponding(context.Background(), &proto.Empty{}, grpc.WaitForReady(true))
 			
 				if(err != nil){
 				log.Println(err)
 				}
 			
-				fmt.Println(reply.GetId(), " is leader?: ", reply.IsLeader)
 					
 				if(reply.GetIsLeader() == true){
 					leaderNodeId = int(reply.GetId())
