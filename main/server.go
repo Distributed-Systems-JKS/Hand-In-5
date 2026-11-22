@@ -34,14 +34,21 @@ type AuctionServer struct {
 }
 
 func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 	if(time.Now().After(s.endTime)){
 		return &proto.Ack{Outcome: "Auction over, write /result to see the result"}, nil
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 	if bid.GetAmount() <= s.highestBid{
 		return &proto.Ack{Outcome: "Unsuccessfull"}, nil //Bid too low
+	}
+
+	//Updating the backup serves before replying to client
+	isReplicated := sendReplication(bid.GetName(), bid.GetAmount())
+	
+	if(!isReplicated){
+		return &proto.Ack{Outcome: "fail"}, nil
 	}
 
 	s.highestBid = bid.GetAmount()
@@ -50,12 +57,6 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	w := csv.NewWriter(s.database);
 	writeInDatabase(*w,bid.GetName(),bid.GetAmount())
 
-	//Updating the backup serves before replying to client
-	isReplicated := sendReplication(bid.GetName(), bid.GetAmount())
-	
-	if(!isReplicated){
-		return &proto.Ack{Outcome: "fail"}, nil
-	}
 	return &proto.Ack{Outcome: "Success"}, nil
 	
 }
@@ -73,6 +74,8 @@ func (s *AuctionServer) Result(ctx context.Context, empty *proto.Empty) (*proto.
 }
 
 func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicate)(*proto.ReplicateAck, error){
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//write in the database
 	w := csv.NewWriter(database)
 	writeInDatabase(*w,replicate.GetName(), replicate.GetAmount())
