@@ -39,7 +39,6 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
-	time.Sleep(5*time.Second)
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
 	if bid.GetAmount() <= s.highestBid{
@@ -143,7 +142,21 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 	
 
 func writeInDatabase(w csv.Writer, name string, amount int64){
-	
+	database.Seek(0, io.SeekStart) //make sure we are at the top of the file
+	r := csv.NewReader(database)
+	data, err := r.ReadAll()
+
+	if( err != nil){log.Println(err)}
+
+	lastRecord := data[len(data)-1]
+
+	lastBidInDatabase, err := strconv.ParseInt(lastRecord[1], 10, 64)
+
+	//If last line in the database matches the replicate-message-values then replication is a success
+	if(lastRecord[0] == name && lastBidInDatabase == amount){
+		//if leader crashed before and we already replicated this, then don't save again
+		return
+	}
 	bid := [][]string{{name, strconv.Itoa(int(amount))}}
 
 	w.Write(bid[0])
