@@ -40,7 +40,6 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	s.mu.Lock()
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
-
 	if bid.GetAmount() <= s.highestBid{
 		return &proto.Ack{Outcome: "Unsuccessfull"}, nil //Bid too low
 	}
