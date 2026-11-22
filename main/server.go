@@ -39,7 +39,7 @@ func (s *AuctionServer) Bid(ctx context.Context, bid *proto.Bid) (*proto.Ack, er
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock() //Unlock when it returns: To take turns during the auction, so not all bids run at the same time
-
+	time.Sleep(5*time.Second)
 	fmt.Println("Bidder " + bid.GetName() + " send a bid");
 
 	if bid.GetAmount() <= s.highestBid{
@@ -97,8 +97,8 @@ func (s *AuctionServer) Replicate(ctx context.Context, replicate *proto.Replicat
 		return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Success"}, nil
 	}
 
-	//Make sure if it fails it sends "fail", but don't know how to see if it fails?
-	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Unsuccessfull"}, nil
+	//Make sure if it fails it sends "fail"
+	return &proto.ReplicateAck{Id: id, Amount: replicate.GetAmount(), Outcome: "Fail"}, nil
 	
 }
 
@@ -180,14 +180,4 @@ func makeServer(port string, NodeId int64, database *os.File) {
 
 }
 
-/*func ElectionTimer(s *AuctionServer ) *proto.Election{
-	start := time.Now()
-	for{
-		if time.Since(start) >= 10*time.Second {
-		//if server uses more than 10 seconds to answer tell the other servers
-		s.isLeader = true;
-			return &proto.Election{Id: id, IsLeader: s.isLeader};
-		}	
-	}
-}*/
 

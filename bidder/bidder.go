@@ -61,7 +61,7 @@ func main(){
 				if(err!=nil){
 					log.Println(err)
 				}
-
+				
 				bid(amount)
 			}
 			
@@ -86,12 +86,10 @@ func bid(amount int64){
 
 
 	if(err != nil){
-		if status.Code(err) == codes.DeadlineExceeded {
-			// server did not reply in time, notify the other servers
-        	notifyBackupServers(amount, true)
-			return;
-    	}
-		log.Println(err)
+		//there occured an error, notify the backup servers
+        notifyBackupServers(amount, true)
+    	
+		
 		return;
 	}
 	

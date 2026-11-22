@@ -44,7 +44,7 @@ func sendReplication(bidderName string, bidderAmount int64) bool{
 			if(i != leaderNodeId){
 				reply, err := clients[i].Replicate(ctx, &proto.Replicate{Name: bidderName, Amount: bidderAmount}, grpc.WaitForReady(true))
 				if(err != nil){
-					if (status.Code(err) == codes.DeadlineExceeded || reply.Outcome == "Unsuccessfull") {
+					if (status.Code(err) == codes.DeadlineExceeded || reply.Outcome == "Fail") {
 						//if there is no reply or replication has failed, replication has not gone through
 						return false;
     				}
