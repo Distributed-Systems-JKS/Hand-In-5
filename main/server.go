@@ -108,7 +108,9 @@ func (s *AuctionServer) Election(ctx context.Context, election *proto.Election)(
 		return &proto.Election{Id: id, IsLeader: false}, nil;
 	} else {
 		//In case election gets send to a server with a higher id
+		s.mu.Lock()
 		s.isLeader = true;
+		s.mu.Unlock()
 		return &proto.Election{Id: id, IsLeader: true}, nil;
 	}
 }
@@ -123,7 +125,9 @@ func (s *AuctionServer) ServerNotResponding(ctx context.Context, message *proto.
 						if (status.Code(err) == codes.DeadlineExceeded) {
 						fmt.Println("Exceeded")
 						// server did not reply in time or has a lower id, notify the other servers
+						s.mu.Lock()
         				s.isLeader = true;
+						s.mu.Unlock()
 						//Send messsage to all clients that a leader has been renewed (selected)
 						fmt.Println(id,": is leader")
 						return &proto.Election{Id: id, IsLeader: s.isLeader}, nil;
